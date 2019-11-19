@@ -11,7 +11,7 @@ open class TopView: UIView {
   struct Dimensions {
     static let leftOffset: CGFloat = 11
     static let rightOffset: CGFloat = 7
-    static let height: CGFloat = 34
+    static let height: CGFloat = 55
   }
 
   var configuration = Configuration()

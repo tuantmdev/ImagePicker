@@ -8,9 +8,9 @@ struct Helper {
   static func getTransform(fromDeviceOrientation orientation: UIDeviceOrientation) -> CGAffineTransform {
     switch orientation {
     case .landscapeLeft:
-      return CGAffineTransform(rotationAngle: CGFloat.pi * 0.5)
+      return CGAffineTransform(rotationAngle: CGFloat.pi * 2.0)
     case .landscapeRight:
-      return CGAffineTransform(rotationAngle: -(CGFloat.pi * 0.5))
+      return CGAffineTransform(rotationAngle: -(CGFloat.pi * 2.0))
     case .portraitUpsideDown:
       return CGAffineTransform(rotationAngle: CGFloat.pi)
     default:

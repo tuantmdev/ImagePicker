@@ -149,10 +149,10 @@ open class ImagePickerController: UIViewController {
     galleryView.collectionView.transform = CGAffineTransform.identity
     galleryView.collectionView.contentInset = UIEdgeInsets.zero
 
-    galleryView.frame = CGRect(x: 0,
-                               y: totalSize.height - bottomContainer.frame.height - galleryHeight,
-                               width: totalSize.width,
-                               height: galleryHeight)
+    galleryView.frame = CGRect(x: totalSize.width - bottomContainer.frame.width - galleryHeight,
+                               y: 0,
+                               width: galleryHeight,
+                               height: totalSize.height)
     galleryView.updateFrames()
     checkStatus()
 
@@ -435,7 +435,7 @@ extension ImagePickerController: CameraViewDelegate {
   // MARK: - Rotation
 
   open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-    return .portrait
+    return .landscape
   }
 
   @objc public func handleRotation(_ note: Notification?) {
