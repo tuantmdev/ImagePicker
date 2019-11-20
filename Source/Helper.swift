@@ -36,12 +36,6 @@ struct Helper {
   }
 
   static func screenSizeForOrientation() -> CGSize {
-    switch UIDevice.current.orientation {
-    case .landscapeLeft, .landscapeRight:
-      return CGSize(width: UIScreen.main.bounds.height,
-                    height: UIScreen.main.bounds.width)
-    default:
-      return UIScreen.main.bounds.size
-    }
+    return UIScreen.main.bounds.size
   }
 }

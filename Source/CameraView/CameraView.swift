@@ -142,7 +142,7 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
 
-    previewLayer?.connection?.videoOrientation = .portrait
+    previewLayer?.connection?.videoOrientation = Helper.getVideoOrientation(fromDeviceOrientation: UIDevice.current.orientation)
     locationManager?.startUpdatingLocation()
   }
 
@@ -154,13 +154,17 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
   func setupPreviewLayer() {
     let layer = AVCaptureVideoPreviewLayer(session: cameraMan.session)
 
-    layer.backgroundColor = configuration.mainColor.cgColor
+    layer.backgroundColor = UIColor.black.cgColor
     layer.autoreverses = true
-    layer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+    layer.videoGravity = AVLayerVideoGravity.resizeAspect
 
     view.layer.insertSublayer(layer, at: 0)
     layer.frame = view.layer.frame
     view.clipsToBounds = true
+    
+    if let connection = layer.connection {
+        connection.videoOrientation = Helper.getVideoOrientation(fromDeviceOrientation: UIDevice.current.orientation)
+    }
 
     previewLayer = layer
   }

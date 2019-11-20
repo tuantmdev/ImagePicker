@@ -42,7 +42,7 @@ open class ImageGalleryView: UIView {
 
   lazy var collectionViewLayout: UICollectionViewLayout = { [unowned self] in
     let layout = ImageGalleryLayout(configuration: self.configuration)
-    layout.scrollDirection = .horizontal
+    layout.scrollDirection = .vertical
     layout.minimumInteritemSpacing = self.configuration.cellSpacing
     layout.minimumLineSpacing = 2
     layout.sectionInset = UIEdgeInsets.zero

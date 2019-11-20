@@ -136,8 +136,6 @@ open class ImagePickerController: UIViewController {
     }
 
     statusBarHidden = UIApplication.shared.isStatusBarHidden
-
-    self.handleRotation(nil)
   }
 
   open override func viewDidAppear(_ animated: Bool) {
@@ -158,8 +156,6 @@ open class ImagePickerController: UIViewController {
 
     initialFrame = galleryView.frame
     initialContentOffset = galleryView.collectionView.contentOffset
-
-    applyOrientationTransforms()
 
     UIAccessibility.post(notification: UIAccessibility.Notification.screenChanged,
                          argument: UIAccessibility.Notification.screenChanged);
@@ -249,11 +245,6 @@ open class ImagePickerController: UIViewController {
       selector: #selector(volumeChanged(_:)),
       name: NSNotification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"),
       object: nil)
-
-    NotificationCenter.default.addObserver(self,
-      selector: #selector(handleRotation(_:)),
-      name: UIDevice.orientationDidChangeNotification,
-      object: nil)
   }
 
   @objc func didReloadAssets(_ notification: Notification) {
@@ -296,7 +287,7 @@ open class ImagePickerController: UIViewController {
   open func collapseGalleryView(_ completion: (() -> Void)?) {
     galleryView.collectionViewLayout.invalidateLayout()
     UIView.animate(withDuration: 0.3, animations: {
-      self.updateGalleryViewFrames(self.galleryView.topSeparator.frame.height)
+      self.updateGalleryViewFrames(self.galleryView.topSeparator.frame.width)
       self.galleryView.collectionView.transform = CGAffineTransform.identity
       self.galleryView.collectionView.contentInset = UIEdgeInsets.zero
       }, completion: { _ in
@@ -323,13 +314,13 @@ open class ImagePickerController: UIViewController {
       self.galleryView.collectionView.transform = CGAffineTransform(scaleX: scale, y: scale)
 
       let value = self.view.frame.width * (scale - 1) / scale
-      self.galleryView.collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: value)
+      self.galleryView.collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: value, right: 0)
     })
   }
 
   func updateGalleryViewFrames(_ constant: CGFloat) {
-    galleryView.frame.origin.y = totalSize.height - bottomContainer.frame.height - constant
-    galleryView.frame.size.height = constant
+    galleryView.frame.origin.x = totalSize.width - bottomContainer.frame.width - constant
+    galleryView.frame.size.width = constant
   }
 
   func enableGestures(_ enabled: Bool) {
@@ -437,32 +428,6 @@ extension ImagePickerController: CameraViewDelegate {
   open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
     return .landscape
   }
-
-  @objc public func handleRotation(_ note: Notification?) {
-    applyOrientationTransforms()
-  }
-
-  func applyOrientationTransforms() {
-    let rotate = configuration.rotationTransform
-
-    UIView.animate(withDuration: 0.25, animations: {
-      [self.topView.rotateCamera, self.bottomContainer.pickerButton,
-       self.bottomContainer.stackView, self.bottomContainer.doneButton].forEach {
-        $0.transform = rotate
-      }
-
-      self.galleryView.collectionViewLayout.invalidateLayout()
-
-      let translate: CGAffineTransform
-      if Helper.previousOrientation.isLandscape {
-        translate = CGAffineTransform(translationX: -20, y: 15)
-      } else {
-        translate = CGAffineTransform.identity
-      }
-
-      self.topView.flashButton.transform = rotate.concatenating(translate)
-    })
-  }
 }
 
 // MARK: - TopView delegate methods
@@ -487,14 +452,14 @@ extension ImagePickerController: ImageGalleryPanGestureDelegate {
 
     initialFrame = galleryView.frame
     initialContentOffset = galleryView.collectionView.contentOffset
-    if let contentOffset = initialContentOffset { numberOfCells = Int(contentOffset.x / collectionSize.width) }
+    if let contentOffset = initialContentOffset { numberOfCells = Int(contentOffset.y / collectionSize.height) }
   }
 
   @objc func panGestureRecognizerHandler(_ gesture: UIPanGestureRecognizer) {
     let translation = gesture.translation(in: view)
     let velocity = gesture.velocity(in: view)
 
-    if gesture.location(in: view).y > galleryView.frame.origin.y - 25 {
+    if gesture.location(in: view).x > galleryView.frame.origin.x - 25 {
       gesture.state == .began ? panGestureDidStart() : panGestureDidChange(translation)
     }
 
@@ -506,7 +471,7 @@ extension ImagePickerController: ImageGalleryPanGestureDelegate {
   func panGestureDidChange(_ translation: CGPoint) {
     guard let initialFrame = initialFrame else { return }
 
-    let galleryHeight = initialFrame.height - translation.y
+    let galleryHeight = initialFrame.width - translation.x
 
     if galleryHeight >= GestureConstants.maximumHeight { return }
 
@@ -515,14 +480,14 @@ extension ImagePickerController: ImageGalleryPanGestureDelegate {
     } else if galleryHeight >= GestureConstants.minimumHeight {
       let scale = (galleryHeight - ImageGalleryView.Dimensions.galleryBarHeight) / (GestureConstants.minimumHeight - ImageGalleryView.Dimensions.galleryBarHeight)
       galleryView.collectionView.transform = CGAffineTransform(scaleX: scale, y: scale)
-      galleryView.frame.origin.y = initialFrame.origin.y + translation.y
-      galleryView.frame.size.height = initialFrame.height - translation.y
+      galleryView.frame.origin.x = initialFrame.origin.x + translation.x
+      galleryView.frame.size.width = initialFrame.width - translation.x
 
-      let value = view.frame.width * (scale - 1) / scale
-      galleryView.collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: value)
+      let value = view.frame.height * (scale - 1) / scale
+      galleryView.collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: value, right: 0)
     } else {
-      galleryView.frame.origin.y = initialFrame.origin.y + translation.y
-      galleryView.frame.size.height = initialFrame.height - translation.y
+      galleryView.frame.origin.x = initialFrame.origin.x + translation.x
+      galleryView.frame.size.width = initialFrame.width - translation.x
     }
 
     galleryView.updateNoImagesLabel()
@@ -530,12 +495,12 @@ extension ImagePickerController: ImageGalleryPanGestureDelegate {
 
   func panGestureDidEnd(_ translation: CGPoint, velocity: CGPoint) {
     guard let initialFrame = initialFrame else { return }
-    let galleryHeight = initialFrame.height - translation.y
-    if galleryView.frame.height < GestureConstants.minimumHeight && velocity.y < 0 {
+    let galleryHeight = initialFrame.width - translation.x
+    if galleryView.frame.width < GestureConstants.minimumHeight && velocity.x < 0 {
       showGalleryView()
-    } else if velocity.y < -GestureConstants.velocity {
+    } else if velocity.x < -GestureConstants.velocity {
       expandGalleryView()
-    } else if velocity.y > GestureConstants.velocity || galleryHeight < GestureConstants.minimumHeight {
+    } else if velocity.x > GestureConstants.velocity || galleryHeight < GestureConstants.minimumHeight {
       collapseGalleryView(nil)
     }
   }
