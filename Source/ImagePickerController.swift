@@ -430,12 +430,7 @@ extension ImagePickerController: CameraViewDelegate {
     }
     
     open override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
-        switch UIDevice.current.orientation {
-        case .landscapeLeft:
-            return .landscapeRight
-        default:
-            return .landscapeLeft
-        }
+        return UIApplication.shared.statusBarOrientation
     }
 }
 
