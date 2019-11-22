@@ -17,7 +17,7 @@ open class TopView: UIView {
   var configuration = Configuration()
 
   var currentFlashIndex = 0
-  let flashButtonTitles = ["AUTO", "ON", "OFF"]
+  let flashButtonTitles = ["AUTO", "AN", "AUS"]
 
   open lazy var flashButton: UIButton = { [unowned self] in
     let button = UIButton()
