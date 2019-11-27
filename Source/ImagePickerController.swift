@@ -152,7 +152,7 @@ open class ImagePickerController: UIViewController {
                                    width: galleryHeight,
                                    height: totalSize.height)
         galleryView.updateFrames()
-        checkStatus()
+        checkStatus(nil)
         
         initialFrame = galleryView.frame
         initialContentOffset = galleryView.collectionView.contentOffset
@@ -165,7 +165,7 @@ open class ImagePickerController: UIViewController {
         self.stack.resetAssets([])
     }
     
-    func checkStatus() {
+    func checkStatus(_ completion: ((PHAuthorizationStatus) -> Void)?) {
         let currentStatus = PHPhotoLibrary.authorizationStatus()
         guard currentStatus != .authorized else { return }
         
@@ -178,7 +178,12 @@ open class ImagePickerController: UIViewController {
                 } else if authorizationStatus == .authorized {
                     self.permissionGranted()
                 }
+                
+                if let completion = completion {
+                    completion(authorizationStatus)
+                }
             }
+            
         }
     }
     
@@ -358,7 +363,11 @@ open class ImagePickerController: UIViewController {
 extension ImagePickerController: BottomContainerViewDelegate {
     
     func pickerButtonDidPress() {
-        takePicture()
+        checkStatus { [weak self] authorizationStatus in
+            guard let self = self, case .authorized = authorizationStatus else { return }
+            self.takePicture()
+        }
+        
     }
     
     func doneButtonDidPress() {
