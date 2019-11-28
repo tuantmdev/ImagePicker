@@ -167,7 +167,12 @@ open class ImagePickerController: UIViewController {
     
     func checkStatus(_ completion: ((PHAuthorizationStatus) -> Void)?) {
         let currentStatus = PHPhotoLibrary.authorizationStatus()
-        guard currentStatus != .authorized else { return }
+        guard currentStatus != .authorized else {
+            if let completion = completion {
+                completion(.authorized)
+            }
+            return
+        }
         
         if currentStatus == .notDetermined { hideViews() }
         
@@ -364,8 +369,8 @@ extension ImagePickerController: BottomContainerViewDelegate {
     
     func pickerButtonDidPress() {
         checkStatus { [weak self] authorizationStatus in
-            guard let self = self, case .authorized = authorizationStatus else { return }
-            self.takePicture()
+            guard let strongSelf = self, case .authorized = authorizationStatus else { return }
+            strongSelf.takePicture()
         }
         
     }
