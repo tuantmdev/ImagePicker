@@ -70,7 +70,7 @@ open class ImagePickerController: UIViewController {
     var volume = AVAudioSession.sharedInstance().outputVolume
     
     @objc open weak var delegate: ImagePickerDelegate?
-    open var stack = ImageStack()
+    @objc open var stack = ImageStack()
     @objc open var imageLimit = 0
     open var preferredImageSize: CGSize?
     open var startOnFrontCamera = false

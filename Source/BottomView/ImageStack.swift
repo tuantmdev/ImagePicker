@@ -1,7 +1,7 @@
 import UIKit
 import Photos
 
-open class ImageStack {
+@objc open class ImageStack: NSObject {
 
   public struct Notifications {
     public static let imageDidPush = "imageDidPush"
@@ -9,7 +9,7 @@ open class ImageStack {
     public static let stackDidReload = "stackDidReload"
   }
 
-  open var assets = [PHAsset]()
+  @objc open var assets = [PHAsset]()
   fileprivate let imageKey = "image"
 
   open func pushAsset(_ asset: PHAsset) {
