@@ -14,8 +14,8 @@ open class ImagePickerController: UIViewController {
     let configuration: Configuration
     
     struct GestureConstants {
-        static let maximumHeight: CGFloat = 200
-        static let minimumHeight: CGFloat = 125
+        static let maximumWidth: CGFloat = 200
+        static let minimumWidth: CGFloat = 125
         static let velocity: CGFloat = 100
     }
     
@@ -79,6 +79,7 @@ open class ImagePickerController: UIViewController {
     var initialContentOffset: CGPoint?
     var numberOfCells: Int?
     var statusBarHidden = true
+    var initialCameraWidth: CGFloat = 0.0
     
     fileprivate var isTakingPicture = false
     open var doneButtonTitle: String? {
@@ -142,7 +143,7 @@ open class ImagePickerController: UIViewController {
         super.viewDidAppear(animated)
         
         let galleryHeight: CGFloat = UIScreen.main.nativeBounds.height == 960
-            ? ImageGalleryView.Dimensions.galleryBarHeight : GestureConstants.minimumHeight
+            ? ImageGalleryView.Dimensions.galleryBarHeight : GestureConstants.minimumWidth
         
         galleryView.collectionView.transform = CGAffineTransform.identity
         galleryView.collectionView.contentInset = UIEdgeInsets.zero
@@ -156,6 +157,7 @@ open class ImagePickerController: UIViewController {
         
         initialFrame = galleryView.frame
         initialContentOffset = galleryView.collectionView.contentOffset
+        initialCameraWidth = cameraController.view.frame.size.width
         
         UIAccessibility.post(notification: UIAccessibility.Notification.screenChanged,
                              argument: UIAccessibility.Notification.screenChanged);
@@ -308,7 +310,7 @@ open class ImagePickerController: UIViewController {
     open func showGalleryView() {
         galleryView.collectionViewLayout.invalidateLayout()
         UIView.animate(withDuration: 0.3, animations: {
-            self.updateGalleryViewFrames(GestureConstants.minimumHeight)
+            self.updateGalleryViewFrames(GestureConstants.minimumWidth)
             self.galleryView.collectionView.transform = CGAffineTransform.identity
             self.galleryView.collectionView.contentInset = UIEdgeInsets.zero
         })
@@ -318,9 +320,9 @@ open class ImagePickerController: UIViewController {
         galleryView.collectionViewLayout.invalidateLayout()
         
         UIView.animate(withDuration: 0.3, animations: {
-            self.updateGalleryViewFrames(GestureConstants.maximumHeight)
+            self.updateGalleryViewFrames(GestureConstants.maximumWidth)
             
-            let scale = (GestureConstants.maximumHeight - ImageGalleryView.Dimensions.galleryBarHeight) / (GestureConstants.minimumHeight - ImageGalleryView.Dimensions.galleryBarHeight)
+            let scale = (GestureConstants.maximumWidth - ImageGalleryView.Dimensions.galleryBarHeight) / (GestureConstants.minimumWidth - ImageGalleryView.Dimensions.galleryBarHeight)
             self.galleryView.collectionView.transform = CGAffineTransform(scaleX: scale, y: scale)
             
             let value = self.view.frame.width * (scale - 1) / scale
@@ -331,6 +333,9 @@ open class ImagePickerController: UIViewController {
     func updateGalleryViewFrames(_ constant: CGFloat) {
         galleryView.frame.origin.x = totalSize.width - bottomContainer.frame.width - constant
         galleryView.frame.size.width = constant
+        
+        guard let initialFrame = initialFrame else { return }
+        cameraController.view.frame.size.width = initialCameraWidth + initialFrame.size.width - constant
     }
     
     func enableGestures(_ enabled: Bool) {
@@ -470,6 +475,7 @@ extension ImagePickerController: ImageGalleryPanGestureDelegate {
         
         initialFrame = galleryView.frame
         initialContentOffset = galleryView.collectionView.contentOffset
+        initialCameraWidth = cameraController.view.frame.size.width
         if let contentOffset = initialContentOffset { numberOfCells = Int(contentOffset.y / collectionSize.height) }
     }
     
@@ -489,14 +495,18 @@ extension ImagePickerController: ImageGalleryPanGestureDelegate {
     func panGestureDidChange(_ translation: CGPoint) {
         guard let initialFrame = initialFrame else { return }
         
-        let galleryHeight = initialFrame.width - translation.x
+        let galleryWidth = initialFrame.width - translation.x
         
-        if galleryHeight >= GestureConstants.maximumHeight { return }
+        if galleryWidth >= GestureConstants.maximumWidth {
+            return
+        }
         
-        if galleryHeight <= ImageGalleryView.Dimensions.galleryBarHeight {
+        cameraController.view.frame.size.width = initialCameraWidth + translation.x
+        
+        if galleryWidth <= ImageGalleryView.Dimensions.galleryBarHeight {
             updateGalleryViewFrames(ImageGalleryView.Dimensions.galleryBarHeight)
-        } else if galleryHeight >= GestureConstants.minimumHeight {
-            let scale = (galleryHeight - ImageGalleryView.Dimensions.galleryBarHeight) / (GestureConstants.minimumHeight - ImageGalleryView.Dimensions.galleryBarHeight)
+        } else if galleryWidth >= GestureConstants.minimumWidth {
+            let scale = (galleryWidth - ImageGalleryView.Dimensions.galleryBarHeight) / (GestureConstants.minimumWidth - ImageGalleryView.Dimensions.galleryBarHeight)
             galleryView.collectionView.transform = CGAffineTransform(scaleX: scale, y: scale)
             galleryView.frame.origin.x = initialFrame.origin.x + translation.x
             galleryView.frame.size.width = initialFrame.width - translation.x
@@ -514,11 +524,11 @@ extension ImagePickerController: ImageGalleryPanGestureDelegate {
     func panGestureDidEnd(_ translation: CGPoint, velocity: CGPoint) {
         guard let initialFrame = initialFrame else { return }
         let galleryHeight = initialFrame.width - translation.x
-        if galleryView.frame.width < GestureConstants.minimumHeight && velocity.x < 0 {
+        if galleryView.frame.width < GestureConstants.minimumWidth && velocity.x < 0 {
             showGalleryView()
         } else if velocity.x < -GestureConstants.velocity {
             expandGalleryView()
-        } else if velocity.x > GestureConstants.velocity || galleryHeight < GestureConstants.minimumHeight {
+        } else if velocity.x > GestureConstants.velocity || galleryHeight < GestureConstants.minimumWidth {
             collapseGalleryView(nil)
         }
     }
