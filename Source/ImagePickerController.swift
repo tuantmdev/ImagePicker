@@ -21,7 +21,7 @@ open class ImagePickerController: UIViewController {
     
     open lazy var galleryView: ImageGalleryView = { [unowned self] in
         let galleryView = ImageGalleryView(configuration: self.configuration)
-        galleryView.delegate = self
+//        galleryView.delegate = self
         galleryView.selectedStack = self.stack
         galleryView.collectionView.layer.anchorPoint = CGPoint(x: 0, y: 0)
         galleryView.imageLimit = self.imageLimit
