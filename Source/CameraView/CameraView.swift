@@ -151,12 +151,18 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
         locationManager?.stopUpdatingLocation()
     }
     
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        
+        guard let previewLayer = previewLayer else { return }
+        previewLayer.frame = view.layer.frame
+    }
+    
     func setupPreviewLayer() {
         let layer = AVCaptureVideoPreviewLayer(session: cameraMan.session)
         
         layer.backgroundColor = UIColor.black.cgColor
         layer.autoreverses = true
-        layer.videoGravity = AVLayerVideoGravity.resizeAspect
         
         view.layer.insertSublayer(layer, at: 0)
         layer.frame = view.layer.frame
