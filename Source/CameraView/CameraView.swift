@@ -136,7 +136,7 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
         }
         
         cameraMan.delegate = self
-        cameraMan.setup(self.startOnFrontCamera)
+        cameraMan.setup(self.startOnFrontCamera, albumTitle: self.configuration.albumTitle)
     }
     
     override func viewDidAppear(_ animated: Bool) {
