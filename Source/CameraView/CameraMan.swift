@@ -175,7 +175,9 @@ class CameraMan {
                 }
                 
                 PHPhotoLibrary.shared().savePhoto(image: image, albumName: albumTitle, completion: { (_) in
-                    completion?()
+                    DispatchQueue.main.async {
+                        completion?()
+                    }
                 })
             }
         }
