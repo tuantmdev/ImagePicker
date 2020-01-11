@@ -113,6 +113,10 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -137,6 +141,11 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
         
         cameraMan.delegate = self
         cameraMan.setup(self.startOnFrontCamera, albumTitle: self.configuration.albumTitle)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(self.resetFocusAndExposure),
+                                               name: NSNotification.Name.AVCaptureDeviceSubjectAreaDidChange,
+                                               object: nil)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -255,9 +264,24 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
     
     // MARK: - Camera methods
     
+    @objc func resetFocusAndExposure() {
+        cameraMan.setDefaultFocusAndExposure()
+        
+        let point = CGPoint(x: 0.5 * view.bounds.width, y: 0.5 * view.bounds.height)
+        
+        focusImageView.center = point
+        UIView.animate(withDuration: 0.5, animations: {
+            self.focusImageView.alpha = 1
+            self.focusImageView.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
+        }, completion: { _ in
+            self.animationTimer = Timer.scheduledTimer(timeInterval: 1, target: self,
+                                                       selector: #selector(CameraView.timerDidFire), userInfo: nil, repeats: false)
+        })
+    }
+    
     func focusTo(_ point: CGPoint) {
-        let convertedPoint = CGPoint(x: point.x / UIScreen.main.bounds.width,
-                                     y: point.y / UIScreen.main.bounds.height)
+        let convertedPoint = CGPoint(x: point.x / view.bounds.width,
+                                     y: point.y / view.bounds.height)
         
         cameraMan.focus(convertedPoint)
         

@@ -27,6 +27,29 @@ class CameraMan {
     
     // MARK: - Setup
     
+    @objc func setDefaultFocusAndExposure() {
+        guard let device = currentInput?.device else { return }
+        
+        do {
+            try device.lockForConfiguration()
+            
+            device.isSubjectAreaChangeMonitoringEnabled = true
+            
+            if device.isFocusModeSupported(.continuousAutoFocus) {
+                device.focusMode = .continuousAutoFocus
+            }
+            
+            if device.isExposureModeSupported(.continuousAutoExposure) {
+                device.exposureMode = .continuousAutoExposure
+            }
+            
+            device.unlockForConfiguration()
+            
+        } catch {
+            
+        }
+    }
+    
     func setup(_ startOnFrontCamera: Bool = false, albumTitle: String? = nil) {
         self.startOnFrontCamera = startOnFrontCamera
         self.albumTitle = albumTitle
@@ -107,6 +130,8 @@ class CameraMan {
         guard let input = (self.startOnFrontCamera) ? frontCamera ?? backCamera : backCamera, let output = stillImageOutput else { return }
         
         addInput(input)
+        
+        setDefaultFocusAndExposure()
         
         if session.canAddOutput(output) {
             session.addOutput(output)
@@ -206,11 +231,16 @@ class CameraMan {
     }
     
     func focus(_ point: CGPoint) {
-        guard let device = currentInput?.device, device.isFocusModeSupported(AVCaptureDevice.FocusMode.locked) else { return }
+        guard let device = currentInput?.device,
+            device.isFocusModeSupported(.autoFocus),
+            device.isExposureModeSupported(.autoExpose) else { return }
         
         queue.async {
             self.lock {
                 device.focusPointOfInterest = point
+                device.exposurePointOfInterest = point
+                device.focusMode = .autoFocus
+                device.exposureMode = .autoExpose
             }
         }
     }
