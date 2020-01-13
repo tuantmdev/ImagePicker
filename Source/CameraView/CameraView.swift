@@ -146,6 +146,11 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
                                                selector: #selector(self.resetFocusAndExposure),
                                                name: NSNotification.Name.AVCaptureDeviceSubjectAreaDidChange,
                                                object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleRotation(_:)),
+                                               name: UIDevice.orientationDidChangeNotification,
+                                               object: nil)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -277,6 +282,15 @@ class CameraView: UIViewController, CLLocationManagerDelegate, CameraManDelegate
             self.animationTimer = Timer.scheduledTimer(timeInterval: 1, target: self,
                                                        selector: #selector(CameraView.timerDidFire), userInfo: nil, repeats: false)
         })
+    }
+    
+    @objc func handleRotation(_ notification: NSNotification) {
+        guard let previewLayer = previewLayer,
+            let connection = previewLayer.connection else {
+                return
+        }
+        
+        connection.videoOrientation = Helper.getVideoOrientation(fromUIInferfaceOrientation: UIApplication.shared.statusBarOrientation)
     }
     
     func focusTo(_ point: CGPoint) {
